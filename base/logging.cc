@@ -64,23 +64,18 @@ LogMessageHandlerFunction GetLogMessageHandler() {
 
 #if defined(OS_WIN)
 std::string SystemErrorCodeToString(unsigned long error_code) {
-  wchar_t msgbuf[256];
-  DWORD flags = FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS |
-                FORMAT_MESSAGE_MAX_WIDTH_MASK;
-  DWORD len = FormatMessage(
-      flags, nullptr, error_code, 0, msgbuf, arraysize(msgbuf), nullptr);
+  const int kErrorMessageBufferSize = 256;
+  char msgbuf[kErrorMessageBufferSize];
+  DWORD flags = FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS;
+  DWORD len = FormatMessageA(flags, nullptr, error_code, 0, msgbuf,
+                             base::size(msgbuf), nullptr);
   if (len) {
-    // Most system messages end in a period and a space. Remove the space if
-    // it’s there, because the following StringPrintf() includes one.
-    if (len >= 1 && msgbuf[len - 1] == ' ') {
-      msgbuf[len - 1] = '\0';
-    }
-    return base::StringPrintf("%s (%u)",
-                              base::UTF16ToUTF8(msgbuf).c_str(), error_code);
+    // Messages returned by system end with line breaks.
+    return base::CollapseWhitespaceASCII(msgbuf, true) +
+           base::StringPrintf(" (0x%lX)", error_code);
   }
-  return base::StringPrintf("Error %u while retrieving error %u",
-                            GetLastError(),
-                            error_code);
+  return base::StringPrintf("Error (0x%lX) while retrieving error. (0x%lX)",
+                            GetLastError(), error_code);
 }
 #endif  // OS_WIN
 
@@ -270,7 +265,7 @@ LogMessage::~LogMessage() {
 #endif
   }
 #elif defined(OS_WIN)
-  OutputDebugString(base::UTF8ToUTF16(str_newline).c_str());
+  OutputDebugStringA(str_newline.c_str());
 #endif  // OS_MACOSX
 
   if (severity_ == LOG_FATAL) {
