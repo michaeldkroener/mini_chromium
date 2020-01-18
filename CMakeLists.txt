@@ -111,21 +111,19 @@ if(APPLE)
   )
 endif()
 
-add_library(base ${sources})
+add_library(minichromium_base ${sources})
 target_include_directories(
-    base PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}>"
+    minichromium_base PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}>"
 )
 
 if(MSVC)
   target_compile_definitions(
-      base
+      minichromium_base
       PUBLIC
       "_HAS_EXCEPTIONS=0"
       "_CRT_SECURE_NO_WARNINGS"
       "NOMINMAX"
       "WIN32_LEAN_AND_MEAN"
-      "_UNICODE"
-      "UNICODE"
   )
 else()
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-exceptions")
@@ -134,15 +132,15 @@ endif()
 
 string(COMPARE EQUAL "${CMAKE_SYSTEM_NAME}" "Linux" is_linux)
 if(is_linux)
-  target_compile_definitions(base PUBLIC "_FILE_OFFSET_BITS=64")
+  target_compile_definitions(minichromium_base PUBLIC "_FILE_OFFSET_BITS=64")
 endif()
 
 if(APPLE)
-  target_link_libraries(base PUBLIC "-framework CoreFoundation")
-  target_link_libraries(base PUBLIC "-framework CoreGraphics")
-  target_link_libraries(base PUBLIC "-framework CoreText")
-  target_link_libraries(base PUBLIC "-framework Foundation")
-  target_link_libraries(base PUBLIC "-framework Security")
+  target_link_libraries(minichromium_base PUBLIC "-framework CoreFoundation")
+  target_link_libraries(minichromium_base PUBLIC "-framework CoreGraphics")
+  target_link_libraries(minichromium_base PUBLIC "-framework CoreText")
+  target_link_libraries(minichromium_base PUBLIC "-framework Foundation")
+  target_link_libraries(minichromium_base PUBLIC "-framework Security")
 endif()
 
 ####
@@ -177,7 +175,7 @@ configure_package_config_file(
 )
 
 install(
-    TARGETS base
+    TARGETS minichromium_base
     EXPORT "${targets_export_name}"
     LIBRARY DESTINATION "lib"
     ARCHIVE DESTINATION "lib"
